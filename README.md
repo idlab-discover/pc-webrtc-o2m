@@ -2,29 +2,63 @@
 
 In this repository, all files related to a one-to-many volumetric video-based system are made available. Three parts are considered:
 
-- A [Unity project](unity) written in C#, used to create sessions and render point cloud video
-- A [WebRTC framework](webrtc) written in Golang, used to interconnect peers through a selective forwarding unit (SFU)
+- A [capturer](capturer) written in C++, use to capture point clouds and encode them using Draco
+- A [Unity project](unity) written in C#, used to render the point cloud video
+- A [WebRTC framework](webrtc) written in Golang, containing the WebRTC server and client applications
 - A [connector plugin](connector) written in C++, used to interconnect the Unity application to the WebRTC client (currently incomptabile)
 
 The system is currently under development by IDLab, Ghent University - imec. This README will be updated while development continues, with detailed instructions for each of these components.
 
 ## Architecture
 
-The developed system supports multi-party point cloud delivery using a multi-description coding (MDC) approach. In contrast to traditional approaches - which either compress point cloud frames as a whole or apply spatial segmentation in the form of tiles - our solution creates several distinct subsets (descriptions) of sampled points. Each of these descriptions can be encoded separately, resulting in lower processing times due to parallelization. Furthermore, multiple descriptions can be merged together after decoding, resulting in a representation of higher visual quality.
+The developed system supports one-to-many point cloud delivery using a multi-description coding (MDC) approach. In contrast to traditional approaches - which either compress point cloud frames as a whole or apply spatial segmentation in the form of tiles - our solution creates several distinct subsets (descriptions) of sampled points. Each of these descriptions can be encoded separately, resulting in lower processing times due to parallelization. Furthermore, multiple descriptions can be merged together after decoding, resulting in a representation of higher visual quality.
 
 ![Architecture](architecture.png)
 
-As shown in the above illustration, our solution provides a fixed number of encoders per participant, corresponding to the number of descriptions. The number of local decoders for each client scales with the number of received descriptions. The SFU unit decides on what descriptions will be forwarded to each client, taking into account the user's field of view (FoV) and position in the sence, as well as the bandwidth that is available to the client (estimated through [Google congestion control](https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02)).
+As shown in the above illustration, our solution provides a fixed number of encoders per participant, corresponding to the number of descriptions. The number of local decoders for each client scales with the number of received descriptions. The WebRTC server decides on what descriptions will be sent to each client, taking into account the user's field of view (FoV) and position in the sence, as well as the bandwidth that is available to the client (estimated through [Google congestion control](https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02)).
 
-For a more detailed explanation of the system, we refer to our recent publications [1, 2].
+For a more detailed explanation of the system, we refer to our recent publication [1].
 
-[1] M. De Fré, J. van der Hooft, T. Wauters, and F De Turck. "Demonstrating Adaptive Many-to-Many Immersive Teleconferencing for Volumetric Video", Proceedings of the 15th ACM Multimedia Systems Conference, 2024 (available [here](https://backoffice.biblio.ugent.be/download/01HW2J0M02RWJSSFSGP8EEDQ1B/01HW2J41RKP8CXHFTR22D2ARNQ))
-
-[2] M. De Fré, J. van der Hooft, T. Wauters, and F De Turck. "Scalable MDC-Based Volumetric Video Delivery for Real-Time One-to-Many WebRTC Conferencing", Proceedings of the 15th ACM Multimedia Systems Conference, 2024 (available [here](https://backoffice.biblio.ugent.be/download/01HW2J66EZD49XQD2P94JBXHKR/01HW2J8F937QNC36XHZEBRHE8K))
+[1] M. De Fré, J. van der Hooft, T. Wauters, and F De Turck. "Scalable MDC-Based Volumetric Video Delivery for Real-Time One-to-Many WebRTC Conferencing", Proceedings of the 15th ACM Multimedia Systems Conference, 2024 (available [here](https://backoffice.biblio.ugent.be/download/01HW2J66EZD49XQD2P94JBXHKR/01HW2J8F937QNC36XHZEBRHE8K))
 
 ## Installation
+What you need to build and install depends if you are the sender or receiver of the video. 
 
-TODO
+The following is required if you are the **sender**:
+* [Capturing](#capturing)
+* [WebRTC server](#webrtc-server-and-client)
+
+The following is required if you are the **receiver**:
+* [WebRTC client](#webrtc-server-and-client)
+* [Unity application](#unity)
+* [Unity WebRTC connector](#webrtc-connector)
+
+
+### Capturing
+Capturing is done with a seperate application [custom Dll](point_cloud_capturer/). If you plan to make changes to it, you will have to manually copy it into the `Plugins` directory after building it.
+
+> :exclamation: Unity is unable to unload Dlls once they have been used, so if you plan to update a Dll you will also have to restart the editor.
+
+Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
+
+This project requires several dependancies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg).
+
+### WebRTC server and client
+To build the WebRTC server and client you will need to make sure you have installed the [latest version of Golang](https://go.dev/doc/install). If this is the case you will be able to simply do `go build -o NAME.exe .` in the root to build the application. This process will automatically download any necessary  dependencies.
+
+However, for the receiver you will to manually change the current version used by Unity. To do this you will have to the replace existing [webRTC-peer-win.exe](unity/spirit_o2m_webrtc/Assets/peer/) of the Unity application.
+
+### Unity
+First you will have to open the [unity](unity) folder of this repository in Unity hub. Doing so will automatically download any dependencies. Once inside you are able to build the application like any other Unity application, the scene you want to build is called `MainScene` and is located in `Assets/Scenes`.
+
+> :exclamation: When building the application, you will have to manually copy the `config` and `peer` directories from the `Assets` directory to the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html) (In Windows this is: `spirit_unity_Data`).
+
+### WebRTC Connector
+The Unity application uses a Dll to connect to the Golang WebRTC application via sockets. Normally you should never have to build this yourself as this repository contains the latest version.
+
+However, if you do plan to make changes to it, you will have to manually copy it into the `Plugins` directory after building it.
+
+For more information about the Dll you can visit the [README](connector/README.md) of the WebRTC Connector.
 
 ## Usage
 
