@@ -1,0 +1,8 @@
+{
+    "selfPort": 8000,
+    "selfAddr": "127.0.0.1",
+    "srvPort": 8001,
+    "srvAddr": "127.0.0.1",
+    "srvPath": "C:\\Users\\matth\\OneDrive\\Documenten\\SPIRIT-CLEAN\\webrtc-pc-server\\server.exe",
+    "isIndi": false
+}

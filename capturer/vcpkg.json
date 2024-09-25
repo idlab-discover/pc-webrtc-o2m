@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "boost",
+    "draco",
+    "pcl",
+    "realsense2"
+  ]
+}
