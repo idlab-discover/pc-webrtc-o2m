@@ -31,11 +31,19 @@ Following command line parameters can be used to change the behaviour of the app
 | **Parameter** 	| **Name**          	| **Description**                                                      	| **Example**     	|
 |---------------	|-------------------	|----------------------------------------------------------------------	|-----------------	|
 | -r            	| Result File       	| Location and file name where metrics will be saved                   	| results_100.csv 	|
-| -a            	| Proxy Address     	| The IP address of the proxy where packets are forwarded to           	| 127.0.0.1       	|
 | -p            	| Proxy Config       	| Config file used to automatically start the Golang peer              	| config.json      	|
 | -i            	| Use Camera        	| Use a Realsense camera as input for the pipeline                     	| n.a.            	|
 | -d            	| Content Directory 	| When not using a camera .ply files in this location are used instead 	| frames          	|
+| -l            	| Encoding strategy 	| Which encoding strategy should be used (e.g., `layer`, `indi`, `fixed_pc`) 	| layer          	|
 
-## Roadmap
+## Encoding Strategies
+The application contains several encoding strategies (set by using the `-l` parameter`) that you can use to encode the point cloud.
 
-Add build support for Linux
+### Layer
+This uses an MDC-based approach which splits the point cloud into three base descriptions containing 15%, 25% and 60% of the points in the original point cloud. The server will then decide which of these descriptions will be forwarded to the user based on their available bandwidth and position. Each of these base descriptions contains distinct points, because of this a user can receive multiple base descriptions and combine them into a higher quality version.
+
+### Indi
+This method uses the available bitrate of a user to calculate a respective sampling rate. This results in each user having the best possible quality. However, because now encoding has to be done for each user seperately, the maximum number of users will be selected based on the hardware of the capturer.
+
+### Fixed
+This method is similar to the `layer` approach, but will first limit the number of points in the point cloud to `125.000`.
