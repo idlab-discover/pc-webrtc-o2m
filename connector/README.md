@@ -25,13 +25,16 @@ Whenever you have a class that needs to use the functionalities of the plugin, y
 
   // Get the size of the next frame, will block until a frame is available or until the application ends (will return 0 when that happens)  
   [DllImport("PCStreamingPlugin")]
-
   private static extern int next_frame();
   // Copies the data (position and color) from the current frame into the provided buffer
   [DllImport("PCStreamingPlugin")]
   private static extern void set_data(byte[] points);
 
-  // C
+  // Send control data such as position and fov to the server
+  [DllImport("PCStreamingPlugin")]
+  private static extern int send_data_to_server(void* data, uint32_t size);
+
+  // Clean up WSA / sockets
   [DllImport("PCStreamingPlugin")]
   private static extern void clean_up();
 ```
