@@ -185,7 +185,8 @@ int send_data_to_server(void* data, uint32_t size) {
     char buf_msg[BUFLEN] = { 0 };
     char* temp_d = reinterpret_cast<char*>(data);
     memcpy(buf_msg, temp_d, size);
-    if ((size_send = sendto(s, buf_msg, BUFLEN, 0, (struct sockaddr*)&si_other, slen)) == SOCKET_ERROR)
+
+    if ((size_send = sendto(s_send, buf_msg, BUFLEN, 0, (struct sockaddr*)&si_send, slen_send)) == SOCKET_ERROR)
     {
         return -1;
     }

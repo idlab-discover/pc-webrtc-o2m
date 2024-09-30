@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/gorilla/websocket"
 	"github.com/pion/interceptor"
@@ -22,14 +24,11 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-type PanZoom struct {
-	XPos float32
-	YPos float32
-	ZPos float32
-
-	XRot float32
-	YRot float32
-	ZRot float32
+type cameraInfo struct {
+	init             bool
+	camMatrix        [4][4]float32
+	projectionMatrix [4][4]float32
+	position         [3]float32
 }
 
 type SendMessageCallback func(WebsocketPacket)
@@ -71,14 +70,16 @@ type PeerConnection struct {
 	completedFramesChannel *RingChannel
 	isReady                bool
 
-	panZoomMux     sync.Mutex
-	currentPanZoom PanZoom
+	panZoomMux sync.Mutex
 
 	frameResultWriter FrameResultWriter
 	currentFrameNr    uint64
 
 	conCb OnConnectedCb
 	dscCb OnDisconnectedCb
+
+	camInfo *cameraInfo
+	pcPos   [3]float32
 }
 
 // TODO add offer parameter?
@@ -97,6 +98,7 @@ func NewPeerConnection(clientID uint64, websocketConnection *websocket.Conn, wsC
 		frameResultWriter:       *NewFrameResultWriter(strconv.Itoa(int(clientID)), 5),
 		currentFrameNr:          0,
 		isIndi:                  isIndi,
+		camInfo:                 &cameraInfo{},
 	}
 	if isIndi {
 		pc.transcoder = NewTranscoderRemoteIndi(proxyConn, uint32(clientID))
@@ -141,13 +143,28 @@ func (pc *PeerConnection) NewWebrtcAPI() *webrtc.API {
 	m.RegisterFeedback(webrtc.RTCPFeedback{Type: "nack", Parameter: "pli"}, webrtc.RTPCodecTypeVideo)
 	// Sender side
 	congestionController, err := cc.NewInterceptor(func() (cc.BandwidthEstimator, error) {
-		return gcc.NewSendSideBWE(gcc.SendSideBWEMinBitrate(75_000*8), gcc.SendSideBWEInitialBitrate(75_000_000), gcc.SendSideBWEMaxBitrate(262_744_320))
+		return gcc.NewSendSideBWE(gcc.SendSideBWEMinBitrate(55000*30*8), gcc.SendSideBWEInitialBitrate(75_000_000), gcc.SendSideBWEMaxBitrate(262_744_320))
 	})
 	if err != nil {
 		panic(err)
 	}
 
 	congestionController.OnNewPeerConnection(func(id string, estimator cc.BandwidthEstimator) {
+		pointerVal := reflect.ValueOf(estimator)
+		val := reflect.Indirect(pointerVal)
+
+		lossControllerFieldPtr := val.FieldByName("lossController")
+		lossControllerField := reflect.Indirect((lossControllerFieldPtr))
+
+		minBitrateField := lossControllerField.FieldByName("minBitrate")
+		ptrToMin := unsafe.Pointer(minBitrateField.UnsafeAddr())
+		actualMinPtr := (*int)(ptrToMin)
+		*actualMinPtr = 55000 * 30 * 8
+
+		maxBitrateField := lossControllerField.FieldByName("maxBitrate")
+		ptrToMax := unsafe.Pointer(maxBitrateField.UnsafeAddr())
+		actualMaxPtr := (*int)(ptrToMax)
+		*actualMaxPtr = 262_744_320
 		pc.SetEstimator(estimator)
 	})
 	m.RegisterFeedback(webrtc.RTCPFeedback{Type: webrtc.TypeRTCPFBTransportCC}, webrtc.RTPCodecTypeVideo)
@@ -324,7 +341,7 @@ func (pc *PeerConnection) OnConnectionStateChangeCb(s webrtc.PeerConnectionState
 			go func() {
 				for {
 					frameNr, frame := pc.transcoder.NextFrame()
-					pc.SendFrame(pc.transcoder.EncodeFrame(frame, frameNr, pc.GetBitrate()))
+					pc.SendFrame(pc.transcoder.EncodeFrame(frame, frameNr, pc.GetBitrate(), 0))
 				}
 			}()
 		}
@@ -393,20 +410,8 @@ func (pc *PeerConnection) GetFrameCounter() uint32 {
 	return uint32(pc.currentFrameNr)
 }
 
-func (pc *PeerConnection) GetPanZoom() PanZoom {
-	pc.panZoomMux.Lock()
-	defer pc.panZoomMux.Unlock()
-	return pc.currentPanZoom
-}
-
 func (pc *PeerConnection) GetRemoteDescription() *webrtc.SessionDescription {
 	return pc.webrtcConnection.RemoteDescription()
-}
-
-func (pc *PeerConnection) SetPanZoom(pz PanZoom) {
-	pc.panZoomMux.Lock()
-	defer pc.panZoomMux.Unlock()
-	pc.currentPanZoom = pz
 }
 
 func (pc *PeerConnection) SendFrame(frame *Frame) {
@@ -431,11 +436,11 @@ func (pc *PeerConnection) EncodeFrame(l0 []byte, l1 []byte, l2 []byte) *Frame {
 	//transcodedData := t.lEnc.EncodeMultiFrame(data)
 	tempBitrate := (pc.estimator.GetTargetBitrate()) / 8 / 30
 	fileData := make([]byte, 0)
-
+	qCat := calculatePointVisibility(pc, pc.pcPos, 3)
 	l0Size := len(l0)
 	l1Size := len(l1)
 	l2Size := len(l2)
-	if tempBitrate >= l0Size {
+	if tempBitrate >= l0Size && qCat <= 0 {
 		tempBitrate -= l0Size
 		fileData = append(fileData, l0...)
 		if tempBitrate >= l1Size {
@@ -449,14 +454,14 @@ func (pc *PeerConnection) EncodeFrame(l0 []byte, l1 []byte, l2 []byte) *Frame {
 			tempBitrate -= l2Size
 			fileData = append(fileData, l2...)
 		}
-	} else if tempBitrate >= l1Size {
+	} else if tempBitrate >= l1Size && qCat <= 1 {
 		tempBitrate -= l1Size
 		fileData = append(fileData, l1...)
 		if tempBitrate >= l2Size {
 			tempBitrate -= l2Size
 			fileData = append(fileData, l2...)
 		}
-	} else if tempBitrate >= l2Size {
+	} else if tempBitrate >= l2Size && qCat <= 2 {
 		tempBitrate -= l2Size
 		fileData = append(fileData, l2...)
 	}

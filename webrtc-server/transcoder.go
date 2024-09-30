@@ -20,7 +20,7 @@ type Frame struct {
 type Transcoder interface {
 	UpdateBitrate(bitrate uint32)
 	UpdateProjection()
-	EncodeFrame(data []byte, framecounter uint32, bitrate uint32) *Frame
+	EncodeFrame(data []byte, framecounter uint32, bitrate uint32, qCat uint) *Frame
 	IsReady() bool
 	GetEstimatedBitrate() uint32
 	GetFrameCounter() uint32
@@ -105,11 +105,11 @@ func (t *TranscoderFiles) NextFrame() (uint32, []byte) {
 	return t.frameCounter, t.frames[currentCounter]
 }
 
-func (t *TranscoderFiles) EncodeFrame(data []byte, framecounter uint32, bitrate uint32) *Frame {
+func (t *TranscoderFiles) EncodeFrame(data []byte, framecounter uint32, bitrate uint32, qCat uint) *Frame {
 
 	//transcodedData := t.lEnc.EncodeMultiFrame(data)
 
-	transcodedData := t.lEnc.EncodeMultiFrame(data, bitrate)
+	transcodedData := t.lEnc.EncodeMultiFrame(data, bitrate, qCat)
 	if data == nil {
 		return nil
 	}
@@ -153,8 +153,8 @@ func (t *TranscoderRemote) NextFrame() (uint32, []byte) {
 	return proxyConn.NextFrame(0)
 }
 
-func (t *TranscoderRemote) EncodeFrame(data []byte, framecounter uint32, bitrate uint32) *Frame {
-	transcodedData := t.lEnc.EncodeMultiFrame(data, bitrate)
+func (t *TranscoderRemote) EncodeFrame(data []byte, framecounter uint32, bitrate uint32, qCat uint) *Frame {
+	transcodedData := t.lEnc.EncodeMultiFrame(data, bitrate, qCat)
 	if data == nil {
 		return nil
 	}
@@ -197,7 +197,7 @@ func (t *TranscoderRemoteIndi) NextFrame() (uint32, []byte) {
 	return proxyConn.NextFrame(t.clientID)
 }
 
-func (t *TranscoderRemoteIndi) EncodeFrame(data []byte, framecounter uint32, bitrate uint32) *Frame {
+func (t *TranscoderRemoteIndi) EncodeFrame(data []byte, framecounter uint32, bitrate uint32, qCat uint) *Frame {
 	if data == nil {
 		return nil
 	}

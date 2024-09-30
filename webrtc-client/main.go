@@ -164,7 +164,7 @@ func main() {
 			os.Exit(0)
 		}
 		if s == webrtc.PeerConnectionStateConnected {
-			//proxyConn.SetWsHandler(wsHandler)
+			proxyConn.SetWsHandler(wsHandler)
 		}
 	})
 

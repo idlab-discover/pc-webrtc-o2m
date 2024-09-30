@@ -95,12 +95,14 @@ func (pc *ProxyConnection) StartListening() {
 		for {
 			buffer := make([]byte, 1500)
 			_, _, _ = pc.conn.ReadFromUDP(buffer)
-			wsPacket := WebsocketPacket{
-				0,
-				10,
-				string(buffer),
+			if pc.wsHandler != nil {
+				pc.wsHandler.SendMessage(WebsocketPacket{
+					1,
+					7,
+					string(buffer[4:]),
+				})
 			}
-			pc.wsHandler.SendMessage(wsPacket)
+
 		}
 	}()
 }

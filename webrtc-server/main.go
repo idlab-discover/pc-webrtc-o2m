@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -83,7 +83,7 @@ func main() {
 	// Sender side
 
 	congestionController, err := cc.NewInterceptor(func() (cc.BandwidthEstimator, error) {
-		return gcc.NewSendSideBWE(gcc.SendSideBWEMinBitrate(75_000*8), gcc.SendSideBWEInitialBitrate(15_000_000), gcc.SendSideBWEMaxBitrate(262_744_320))
+		return gcc.NewSendSideBWE(gcc.SendSideBWEMinBitrate(55000*30*8), gcc.SendSideBWEInitialBitrate(55000*30*8), gcc.SendSideBWEMaxBitrate(262_744_320))
 	})
 	if err != nil {
 		panic(err)
@@ -137,8 +137,9 @@ func main() {
 			pcMapMutex.Lock()
 			for _, pc := range peerConnections {
 				// Get frame from proxy = channel (maybe ring channel)
-				if pc.isReady {
-					go pc.SendFrame(transcoder.EncodeFrame(frame, frameNr, pc.GetBitrate()))
+				if pc.isReady && pc.camInfo.init {
+					qCat := calculatePointVisibility(pc, pc.pcPos, 3)
+					go pc.SendFrame(transcoder.EncodeFrame(frame, frameNr, pc.GetBitrate(), qCat))
 				}
 			}
 			pcMapMutex.Unlock()
@@ -203,6 +204,7 @@ func wsNewUserCb(wsConn *websocket.Conn) {
 }
 
 func wsHandlerMessageCbFunc(wsPacket WebsocketPacket, pc *PeerConnection) {
+	//println(wsPacket.MessageType, wsPacket.Message)
 	switch wsPacket.MessageType {
 	case 3: // answer
 		answer := webrtc.SessionDescription{}
@@ -226,15 +228,92 @@ func wsHandlerMessageCbFunc(wsPacket WebsocketPacket, pc *PeerConnection) {
 				panic(candidateErr)
 			}
 		}
-	case 10: //panzoom TODO rework
-		bufBinary := bytes.NewBuffer([]byte(wsPacket.Message))
-		var pz PanZoom
-		if err := binary.Read(bufBinary, binary.LittleEndian, &pz); err == nil {
-			peerConnections[wsPacket.ClientID].SetPanZoom(pz)
-		}
+	case 7:
+
+		updateCamInfoforPeer(pc, wsPacket.Message)
 	default:
 		println(fmt.Sprintf("Received non-compliant message type %d", wsPacket.MessageType))
 	}
+}
+
+func updateCamInfoforPeer(pcState *PeerConnection, data string) {
+	tokens := strings.Split(data, ";")
+
+	if len(tokens) == 39 {
+		pcState.camInfo.init = true
+		pcState.camInfo.camMatrix = fillMatrix(tokens, 0)
+		pcState.camInfo.projectionMatrix = fillMatrix(tokens, 16)
+		pcState.camInfo.position = fillPosition(tokens, 32)
+		pcState.pcPos = fillPosition(tokens, 35)
+	}
+}
+
+func fillMatrix(tokens []string, offset int) [4][4]float32 {
+	m := [4][4]float32{}
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			mm, _ := strconv.ParseFloat(tokens[offset+j+(i*4)], 32)
+			m[i][j] = float32(mm)
+			//		fmt.Printf("%f\t", float32(mm))
+		}
+		//	fmt.Printf("\n")
+	}
+	return m
+}
+
+func fillPosition(tokens []string, offset int) [3]float32 {
+	p := [3]float32{}
+	for i := 0; i < 3; i++ {
+		pp, _ := strconv.ParseFloat(tokens[offset+i], 32)
+		p[i] = float32(pp)
+		//fmt.Printf("%s %f %f %f\n", tokens[offset+i], pp, float32(pp), p[i])
+	}
+	return p
+}
+
+func multiplyPoint(m [4][4]float32, p [3]float32) [3]float32 {
+	x := m[0][0]*p[0] + m[0][1]*p[1] + m[0][2]*p[2] + m[0][3]
+	y := m[1][0]*p[0] + m[1][1]*p[1] + m[1][2]*p[2] + m[1][3]
+	z := m[2][0]*p[0] + m[2][1]*p[1] + m[2][2]*p[2] + m[2][3]
+	n := m[3][0]*p[0] + m[3][1]*p[1] + m[3][2]*p[2] + m[3][3]
+
+	n = 1 / n
+	x *= n
+	y *= n
+	z *= n
+	return [3]float32{x, y, z}
+}
+
+func convertToClipspace(m [4][4]float32, p [3]float32) [4]float32 {
+	x := m[0][0]*p[0] + m[0][1]*p[1] + m[0][2]*p[2] + m[0][3]
+	y := m[1][0]*p[0] + m[1][1]*p[1] + m[1][2]*p[2] + m[1][3]
+	z := m[2][0]*p[0] + m[2][1]*p[1] + m[2][2]*p[2] + m[2][3]
+	w := m[3][0]*p[0] + m[3][1]*p[1] + m[3][2]*p[2] + m[3][3]
+	return [4]float32{x, y, z, w}
+}
+
+func calculatePointVisibility(pcState *PeerConnection, p [3]float32, nBands uint) uint {
+	camSpace := multiplyPoint(pcState.camInfo.camMatrix, p)
+	clipSpace := convertToClipspace(pcState.camInfo.projectionMatrix, camSpace)
+	ndcSpace := [3]float32{
+		clipSpace[0] / clipSpace[3],
+		clipSpace[1] / clipSpace[3],
+		clipSpace[2] / clipSpace[3],
+	}
+	///fmt.Printf("calculatePointVisibility: Client %d, x %f y %f z %f\n", 0, p[0], p[1], p[2])
+	//fmt.Printf("calculatePointVisibility: Pos x %f y %f z %f\n", ndcSpace[0], ndcSpace[1], ndcSpace[2])
+
+	bandSpacing := 1.0 / float32(nBands) * 1.0
+	for i := uint(0); i < nBands; i++ {
+		if (ndcSpace[0] >= 0-bandSpacing*float32(i+1)) && (ndcSpace[0] <= 0+bandSpacing*float32(i+1)) {
+			return i
+		}
+	}
+	if (ndcSpace[0] >= -1.25 && ndcSpace[0] <= 1.25) && (ndcSpace[1] >= -1.25 && ndcSpace[1] <= 1.25) {
+		return nBands - 1
+	}
+
+	return nBands
 }
 
 func VirtualWallFilter(addr net.IP) bool {

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"math"
 	"unsafe"
 
 	"github.com/Workiva/go-datastructures/queue"
@@ -64,18 +63,18 @@ func (lhs FrameCategory) Compare(other queue.Item) int {
 	return 1
 }
 
-func (l *LayeredEncoder) EncodeMultiFrame(frame []byte, bitrate uint32) []byte {
+func (l *LayeredEncoder) EncodeMultiFrame(frame []byte, bitrate uint32, dstID uint) []byte {
 	//
 	var offsets []uint32
 	//var distanceToUser []float32
-	var distanceIDs []uint8
+
 	var mainLHeader MultiLayerMainHeader
 	var distanceToCategory []*queue.PriorityQueue
 	for i := 0; i < 3; i++ {
 		q := queue.NewPriorityQueue(10, false)
 		distanceToCategory = append(distanceToCategory, q)
 	}
-	pz := PanZoom{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+
 	// Combos
 	cs := [][][]uint8{
 		{
@@ -104,13 +103,6 @@ func (l *LayeredEncoder) EncodeMultiFrame(frame []byte, bitrate uint32) []byte {
 		panic(err)
 	}
 	offsets = append(offsets, uint32(unsafe.Sizeof(mainLHeader)))
-
-	mx := mainLHeader.MinX + (mainLHeader.MaxX-mainLHeader.MinX)/2
-	my := mainLHeader.MinY + (mainLHeader.MaxY-mainLHeader.MinY)/2
-	mz := mainLHeader.MinZ + (mainLHeader.MaxZ-mainLHeader.MinZ)/2
-	dst := math.Sqrt(math.Pow(float64(pz.XPos-mx), 2) + math.Pow(float64(pz.YPos-my), 2) + math.Pow(float64(pz.ZPos-mz), 2))
-	dstID := uint8(dst / 50)
-	distanceIDs = append(distanceIDs, dstID)
 	// Frame is out of range
 	if dstID > 3 {
 		return nil
