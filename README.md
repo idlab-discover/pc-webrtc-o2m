@@ -72,7 +72,7 @@ This will start a capturer (using an Intel Realsense camera) that uses the param
 
 The Unity clients can be started once the capturer and server are fully running. For these you need to make sure that their configuration file has the correct parameters, and that it's placed in a `config` directory in the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html). You can find an example config file [here](unity/spirit_o2m_webrtc/Assets/config/session_config.json). The most important parameter you will have to change is the `srvAddr`, which needs to be changed to the address of your WebRTC server. By default the server will be using `0.0.0.0:5678`
 
-The other important parameters are the `selfPort` and `clientPort` these parameters determine which local ports will be used to communicate between Unity and the Golang WebRTC client application. You will only need to change this if you are playing to run multiple clients on the same machine.
+The other important parameters are the `selfPort` and `clientPort` these parameters determine which local ports will be used to communicate between Unity and the Golang WebRTC client application. You will only need to change this if you are planning to run multiple clients on the same machine.
 
 
 ## Supported HMDs
