@@ -62,7 +62,24 @@ For more information about the Dll you can visit the [README](connector/README.m
 
 ## Usage
 
-TODO
+The first step is to make sure that an instance of the capturing application is started. In general, when you are using a camera, you can start the capturing with the following command:
+
+```
+./PCCapturer.exe -p PROXY_CONFIG_PATH -l layer
+```
+
+This will start a capturer that uses the parameters in the [config file](capturer/config_example/proxy_config.json) to start the one-to-many WebRTC server. Additionally, it uses the MDC-based encoding for point clouds. You can find the information of the other optional parameters, and the config file, in the [capturer directory](capturer).
+
+The Unity clients can be started once the capturer and server are fully running. For these you need to make sure that their configuration file has the correct parameters, and that it's placed in a `config` directory in the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html). You can find an example config file [here](unity/spirit_o2m_webrtc/Assets/config/session_config.json). The most important parameter you will have to change is the `srvAddr`, which needs to be changed to the address of your WebRTC server. By default the server will be using `0.0.0.0:5678`
+
+The other important parameters are the `selfPort` and `clientPort` these parameters determine which local ports will be used to communicate between Unity and the Golang WebRTC client application. You will only need to change this if you are playing to run multiple clients on the same machine.
+
+
+## Supported HMDs
+In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:
+#### Tested
+- Meta Quest 2
+
 
 ## Funding
 

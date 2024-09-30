@@ -4,20 +4,34 @@ This repository contains the Unity plugin that can be used to communicate with t
 ## Using it in Unity
 First you will need to place the built .dll file in a place where Unity can find it. Ideally this should be a Plugin folder in the Assets folder. 
 
-Now whenever you have a class that needs to use the plugin you will need to define the functions of the plugin that you want to use like follows:
+### DLL import
+Whenever you have a class that needs to use the functionalities of the plugin, you will need to define the functions you want to use as follows:
+
+    DLLExport void set_data(void* d);
+    DLLExport int setup_connection(char* server_str, uint32_t server_port, uint32_t self_port);
+    DLLExport void start_listening();
+    DLLExport int next_frame();
+    DLLExport void clean_up();
+    DLLExport int send_data_to_server(void* data, uint32_t size);
 
 ```csharp
+  // Setup the connection with the WebRTC client application, has to be called before starting the client application
   [DllImport("PCStreamingPlugin")]
-  private static extern int setup_connection(string ip, uint32_t plugin);
+  private static extern int setup_connection(string server_str, uint32_t server_port, uint32_t self_port);
+
+  // Start listening for incoming packets, has to be called before starting the client application
   [DllImport("PCStreamingPlugin")]
   private static extern void start_listening();
+
+  // Get the size of the next frame, will block until a frame is available or until the application ends (will return 0 when that happens)  
   [DllImport("PCStreamingPlugin")]
+
   private static extern int next_frame();
+  // Copies the data (position and color) from the current frame into the provided buffer
   [DllImport("PCStreamingPlugin")]
-  // You should technically be able to pass any type of pointer (array) to the plugin, however this has not yet been tested
-  // This means that you should be able to pass an array of structures, i.e. points, and that the array should fill itself
-  // And that you don't need to do any parsing in Unity (however, not yet tested)
   private static extern void set_data(byte[] points);
+
+  // C
   [DllImport("PCStreamingPlugin")]
   private static extern void clean_up();
 ```
@@ -30,8 +44,6 @@ void OnApplicationQuit()
   clean_up();
 }
 ```
-
-You yourself are responsible for parsing the raw data returned from the plugin. You can pass any pointer to the set_data() function as this function just simply copies data from an internal buffer to your (array) pointer.
 
 ## Editing the Plugin
 You should know that once a plugin is loaded by Unity it is never unloaded unless the editor (or application) is closed. So if you want to make changes to the plugin you will need to close Unity for them to take effect. There is also an advanced method which allows you to reload plugins, if you want to do this use the Native.cs file from the Unity test application and work as follows:

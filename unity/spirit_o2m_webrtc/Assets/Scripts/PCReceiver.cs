@@ -20,10 +20,6 @@ using System.Threading;
 public class PCReceiver : MonoBehaviour
 {
     [DllImport("PCStreamingPlugin")]
-    static extern int setup_connection(string addr, UInt32 port, UInt32 self_port);
-    [DllImport("PCStreamingPlugin")]
-    private static extern int start_listening();
-    [DllImport("PCStreamingPlugin")]
     private static extern int next_frame();
     [DllImport("PCStreamingPlugin")]
     // You should technically be able to pass any type of pointer (array) to the plugin, however this has not yet been tested
@@ -79,9 +75,6 @@ public class PCReceiver : MonoBehaviour
     {
         queue = new();
         inProgessFrames = new();
-        // If this functions returns 0 everything is fine, 1=>WSA startup error, 2=>socket creation error, 3=>sendto (L4S client) error
-        Debug.Log(setup_connection(SessionInfo.cltAddr, (uint)SessionInfo.cltPort, (uint)SessionInfo.selfPort));
-        start_listening();
         meshFilter =GetComponent<MeshFilter>();
         hqFilter= HQ.GetComponent<MeshFilter>();
         mqFilter = MQ.GetComponent<MeshFilter>();

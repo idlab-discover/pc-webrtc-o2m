@@ -1,21 +1,19 @@
 # WebRTC based Point Cloud Streaming Client
-This repository contains the receiving WebRTC client of the real-time point cloud streaming pipeline. The project structure is fairly simple, at the start it uses WebSockets to setup the WebRTC connection with the server and afterwards the client receives packetized frames from the server which are optionally forwarded to a proxy application using a UDP socket. NACK based retranmssions are also enabled so frame reception is guaranteed as long as packet loss doesn't go too high.
+This repository contains the code to build the WebRTC client application, which makes use of the [pion](https://github.com/pion/webrtc) as the backbone implementation of the whole WebRTC stack. Signalling (i.e., exchange of the SDP and ICE candidates) is performed using a Websocket server that is included in the WebRTC server. This Websocket server is also used to transmit the current position and field of view of the client to the server.
 
-# Building
-Building the project requires the use of Golang. To ensure comptability Golang version 1.21+ should be used. However, older version might also work but have not yet been tested. The project itself has been tested on both Windows and Ubuntu 20.04.
-
-# Dependencies (will be installed by Golang)
-* [Pion (WebRTC)](https://github.com/pion/webrtc)
-* [Gorilla (websockets)](https://github.com/gorilla/websocket)
 
 # Usage
-The client should be started after the server is fully setup to ensure that the signaling server can be contacted. Following command line parameters can be used to change the behaviour of the application:
+The client application will automically be started by the Unity application, which uses a config file to configure the following parameters:
 
 | **Parameter** | **Name**     | **Description**                                                       | **Example**    |
 |---------------|------------- |-----------------------------------------------------------------------|----------------|
-| -v            | IP Filter    | Forces the client to communicate using the interface with this IP     | 192.168.10.1   |
-| -w            | WS Server ip | IP Address of the websocket server used for the signalling proces     | localhost:5678 |
-| -p            | Proxy Port   | If enabled the client will forward frames to a separate application   | :8001          |
-| -m            | Result Path  | The path to which metrics are saved (folder + file without extension) | results/exp_1  |
+| -p            | Unity Address    | Which address is used by Unity to communicate with WebRTC     | 127.0.0.1:8000   |
+| -clt            | Proxy WebRTC Address  | Which address is used the WebRTC peer to communicate with Unity| 127.0.0.1:8001 |
+| -srv            | WebRTC Server Address   | The address of the WebRTC (capturer) server   | 192.168.10.1:8001          |
 
-# Roadmap
+
+## Building
+Simply use: `go build -o client.exe .` to build the application.
+
+## Dependencies
+You do not need to worry about any dependencies as Golang will automatically download them for you.

@@ -1,28 +1,24 @@
 # WebRTC based Point Cloud Streaming Server
-This repository contains the sending WebRTC server of the real-time point cloud streaming pipeline. The project contains a built in signalling server which is used to exchange SDP messages with the clients. The server is able to transmit data from either a directory within the project or by using point clouds captured by the [PC capturing application](https://github.com/MatthiasDeFre/pc-capturer ). NACK based retranmssions are also enabled so frame reception is guaranteed as long as packet loss doesn't go too high. Bandwidth is estimated using [Google Congestion Control (GCC)](https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02) and the quality of the content is adapted using this estimation.
+This repository contains the code to build the WebRTC server application, which makes use of the [pion](https://github.com/pion/webrtc) as the backbone implementation of the whole WebRTC stack. Signalling (i.e., exchange of the SDP and ICE candidates) is performed using a Websocket server that is included in the WebRTC server. This Websocket server is also used to transmit the current position and field of view of the client to the server.
 
-# Building
-Building the project requires the use of Golang. To ensure comptability Golang version 1.21+ should be used. However, older version might also work but have not yet been tested. The project itself has been tested on both Windows and Ubuntu 20.04.
+The server contains an bitrate allocation algorithm which uses the bandwidth estimated by GCC to decide which quality of each user has to be send to the client. Additionally, it uses position and field of view of the client to improve overall quality by giving more quality to those users that are closer to the client.
 
+For a more detailed explanation on how this algorithm works, we refer to our recent publication [1].
 
-# Dependencies (will be installed by Golang)
-* [Pion (WebRTC)](https://github.com/pion/webrtc)
-* [Gorilla (websockets)](https://github.com/gorilla/websocket)
+[1] M. De Fré, J. van der Hooft, T. Wauters, and F De Turck. "Scalable MDC-Based Volumetric Video Delivery for Real-Time One-to-Many WebRTC Conferencing", Proceedings of the 15th ACM Multimedia Systems Conference, 2024 (available [here](https://backoffice.biblio.ugent.be/download/01HW2J66EZD49XQD2P94JBXHKR/01HW2J8F937QNC36XHZEBRHE8K))
 
 # Usage
-Following command line parameters can be used to change the behaviour of the application:
+The  server application will automically be started by the capturing application, which uses a config file to configure the following parameters:
 
 | **Parameter** | **Name**           | **Description**                                                          | **Example**    |
 |---------------|--------------------|--------------------------------------------------------------------------|----------------|
-| -v            | IP Filter          | Forces the server to communicate using the interface with this IP        | 192.168.10.1   |
-| -p            | Proxy Port         | If enabled the server will receive frames from a UDP socket on this port | :8001          |
-| -d            | Content Directory  | When not using the proxy port, a folder with content can be used instead | content_madfr  |
-| -f            | Content Frame Rate | When not using the proxy port, the FPS at which the content is server    | 30             |
-| -s            | Signaling IP       | IP on which the signaling server will be created                         | 127.0.0.1:5678 |
-| -m            | Result Path        | The path to which metrics are saved (folder + file without extension)    | results/exp_1  |
+| -cap            | Capturer Address          | What address + port is used by the capturer        | 127.0.0.1:7000   |
+| -srv            | Server Address         | What address + port should the server use to communicate with the capturer | 127.0.0.1:7001          |
+| -i            | Is individual coding used  | This will send the bitrates from the server to the capturer to allow for individual encoding | false
 
-To test the application you can use the following test content: [900 frame test sequence](https://drive.google.com/file/d/1yYDy3GVNkUxuNm5Qfs_-1BTZ6MbLrm7Y/view?usp=sharing)
+## Building
+Simply use: `go build -o server.exe .` to build the application.
 
-# Roadmap
-* Add support for many-to-many communication
-* Add support for tile-based / part of object adaptation
+
+## Dependencies
+You do not need to worry about any dependencies as Golang will automatically download them for you.
