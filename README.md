@@ -41,7 +41,11 @@ Capturing is done with a seperate application [custom Dll](point_cloud_capturer/
 
 Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
 
-This project requires several dependancies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg).
+This project requires several dependencies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg). Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-msbuild?pivots=shell-powershell). You can skip the steps that involve creating a new manifest file, or add new dependencies.
+
+> ❗ Make sure to install `vcpkg` in a location that contains no spaces, if you do certain dependencies will break.
+
+> 💡 If you get a build error you probably either skipped the `vcpkg integrate install` step or the step that sets the environment variables. If this happens you will need to `vcpkg integrate remove`, followed by `vcpkg integrate install` and by setting the environment variables. 
 
 ### WebRTC server and client
 To build the WebRTC server and client you will need to make sure you have installed the [latest version of Golang](https://go.dev/doc/install). If this is the case you will be able to simply do `go build -o NAME.exe .` in the root to build the application. This process will automatically download any necessary  dependencies.
