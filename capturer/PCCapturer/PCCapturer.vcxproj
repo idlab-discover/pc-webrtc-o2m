@@ -141,7 +141,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\matth\OneDrive\Documenten\SPIRIT-CLEAN\pc-capturer\PCCapturer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>PCCapturer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -165,6 +165,7 @@
     <ClInclude Include="frame_processor\frame_processor_individual.h" />
     <ClInclude Include="frame_processor\frame_processor_fixed_rate.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="thread_pool.h" />
     <ClInclude Include="transporter\transporter_mock.h" />
     <ClInclude Include="worker\worker_layered.h" />
