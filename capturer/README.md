@@ -7,6 +7,14 @@ The project is build in a modular way allowing you to provide your own implement
 ## Building
 Currently the project can only be build on Windows by using the supplied [Visual Studio](https://visualstudio.microsoft.com/) solution. When building the project for testing you should make sure that you selected the release candidate, this is due to certain dependencies exhibiting suboptimal behaviour when using the debug build which can hinder the real-tine effeciency of the application. 
 
+Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-msbuild?pivots=shell-powershell). You can skip the steps that involve creating a new manifest file, or add new dependencies.
+
+> ❗ Make sure to install `vcpkg` in a location that contains no spaces, if you do certain dependencies will break.
+
+> 💡 If you get a build error you probably either skipped the `vcpkg integrate install` step or the step that sets the environment variables. If this happens you will need to `vcpkg integrate remove`, followed by `vcpkg integrate install` and by setting the environment variables.
+
+You can use the shortcut `Ctrl+Shift+B` to easily build the application.
+
 ## Dependencies
 This project requires several dependancies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg).
 
