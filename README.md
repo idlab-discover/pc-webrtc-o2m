@@ -35,11 +35,7 @@ The following is required if you are the **receiver**:
 
 
 ### Capturing
-Capturing is done with a seperate application [custom Dll](point_cloud_capturer/). If you plan to make changes to it, you will have to manually copy it into the `Plugins` directory after building it.
-
-> :exclamation: Unity is unable to unload Dlls once they have been used, so if you plan to update a Dll you will also have to restart the editor.
-
-Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
+Capturing is done with a separate [application](capturer). Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
 
 This project requires several dependencies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg). Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-msbuild?pivots=shell-powershell). You can skip the steps that involve creating a new manifest file, or add new dependencies.
 
