@@ -5,7 +5,7 @@ In this repository, all files related to a one-to-many volumetric video-based sy
 - A [capturer](capturer) written in C++, use to capture point clouds and encode them using Draco
 - A [Unity project](unity/spirit_o2m_webrtc) written in C#, used to render the point cloud video
 - A [WebRTC client](webrtc-client) and a [WebRTC server](webrtc-server) written in Golang, containing the WebRTC server and client applications
-- A [connector plugin](connector) written in C++, used to interconnect the Unity application to the WebRTC client (currently incomptabile)
+- A [connector plugin](connector) written in C++, used to interconnect the Unity application to the WebRTC client
 
 The system is currently under development by IDLab, Ghent University - imec. This README will be updated while development continues, with detailed instructions for each of these components.
 
