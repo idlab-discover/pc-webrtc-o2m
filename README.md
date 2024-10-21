@@ -50,7 +50,7 @@ However, for the receiver you will to manually change the current version used b
 
 ### Unity
 First you will have to open the [unity](unity) folder of this repository in Unity hub. Doing so will automatically download any dependencies. Once inside you are able to build the application like any other Unity application, the scene you want to build is called `MainScene` and is located in `Assets/Scenes`.
-
+> :warning: If you get a message asking you to convert to application to a newer Unity version, or to install the older version, always choose to install the older version. The application was not tested with never version of Unity, and problems will likely occur if you upgrade.
 > :exclamation: When building the application, you will have to manually copy the `config` and `peer` directories from the `Assets` directory to the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html) (In Windows this is: `spirit_unity_Data`).
 
 ### WebRTC Connector
