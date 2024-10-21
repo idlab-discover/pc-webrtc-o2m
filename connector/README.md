@@ -1,6 +1,9 @@
 # PC Streaming Unity Plugin
 This repository contains the Unity plugin that can be used to communicate with the WebRTC client. You can build the plugin with Visual Studio (make sure you build the release version and not the debug one) and copy the .dll file to your Unity application.
 
+## Building
+After opening the solution in Visual Studio, you will need to make sure to select the `Release` candidate at the top. After you have done this you can simply use the shortcut `Ctrl+Shift+B` to easily build the application.
+
 ## Using it in Unity
 First you will need to place the built .dll file in a place where Unity can find it. Ideally this should be a Plugin folder in the Assets folder. 
 
