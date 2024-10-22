@@ -44,6 +44,8 @@ Following command line parameters can be used to change the behaviour of the app
 | -d            	| Content Directory 	| When not using a camera .ply files in this location are used instead 	| frames          	|
 | -l            	| Encoding strategy 	| Which encoding strategy should be used (e.g., `layer`, `indi`, `fixed_pc`) 	| layer          	|
 
+> ❗ If the application does not run, you might need to install the latest version of [vcredist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022).
+
 ## Encoding Strategies
 The application contains several encoding strategies (set by using the `-l` parameter`) that you can use to encode the point cloud.
 
