@@ -13,7 +13,7 @@ Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_sta
 
 > 💡 If you get a build error you probably either skipped the `vcpkg integrate install` step or the step that sets the environment variables. If this happens you will need to `vcpkg integrate remove`, followed by `vcpkg integrate install` and by setting the environment variables.
 
-You can use the shortcut `Ctrl+Shift+B` to easily build the application.
+You can use the shortcut `Ctrl+Shift+B` to easily build the application or follow this [guide](https://learn.microsoft.com/en-us/visualstudio/ide/compiling-and-building-in-visual-studio?view=vs-2022).
 
 ## Dependencies
 This project requires several dependancies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg).
