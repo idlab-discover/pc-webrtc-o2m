@@ -33,6 +33,7 @@ The following is required if you are the **receiver**:
 * [Unity application](#unity)
 * [Unity WebRTC connector](#webrtc-connector)
 
+> ❗ It is also best to install the latest version of [vcredist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) to prevent any problems.
 
 ### Capturing
 Capturing is done with a separate [application](capturer). Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
