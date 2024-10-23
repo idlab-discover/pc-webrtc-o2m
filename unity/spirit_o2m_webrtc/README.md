@@ -31,4 +31,9 @@ All dependencies will be automatically downloaded when opening the project.
 ## Supported HMDs
 In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:
 #### Tested
+- Meta Quest 2 ([guide](https://www.meta.com/en-gb/help/quest/articles/headsets-and-accessories/oculus-link/connect-with-air-link/))
+
+## Supported HMDs
+In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:
+#### Tested
 - Meta Quest 2
