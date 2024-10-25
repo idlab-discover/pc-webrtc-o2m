@@ -99,7 +99,7 @@ func (pc *ProxyConnection) StartListening() {
 				pc.wsHandler.SendMessage(WebsocketPacket{
 					1,
 					7,
-					string(buffer[4:]),
+					string(buffer[:]),
 				})
 			}
 

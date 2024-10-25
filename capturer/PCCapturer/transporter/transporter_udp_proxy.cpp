@@ -15,9 +15,13 @@ void from_json(const json& j, ProxyConfig& p) {
 #define BUFLEN 1500	//Max length of buffer
 #define PORT 8001
 void TransporterUDPProxy::Init(const std::string& config_path) {
+	std::cout << config_path << std::endl;
 	std::ifstream f(config_path);
 	json data = json::parse(f);
+	std::cout << "test" << std::endl;
+	
 	config = data.template get<ProxyConfig>();
+	std::cout << config.srv_path << std::endl;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
 		printf("WSA ERROR");
@@ -38,7 +42,7 @@ void TransporterUDPProxy::Init(const std::string& config_path) {
 	}
 	ULONG buf_size = 524288000;
 	setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(ULONG));
-	
+	std::cout << config.srv_path << std::endl;
 	StartPeerProcess(config.srv_path, 
 		config.self_addr + ":" + std::to_string(config.self_port), 
 		config.srv_addr + ":" + std::to_string(config.srv_port),

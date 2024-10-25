@@ -87,6 +87,7 @@ public unsafe class SessionManager : MonoBehaviour
             Vector3 pos = rig.transform.position;
             output += $"{pos.x};{pos.y + 1};{pos.z};";
             output += $"{receiver.transform.position.x};{receiver.transform.position.y};{receiver.transform.position.z};";
+            Debug.Log(output);
             byte[] outputBytes = Encoding.ASCII.GetBytes(output);
             unsafe
             {
