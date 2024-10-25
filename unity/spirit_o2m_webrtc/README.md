@@ -13,7 +13,7 @@ As Unity does not have solid support for WebRTC, a seperate Golang based applica
 ## Building
 Building the application is very simple, and is the same as building a normal Unity application. 
 
-However, after building the application, you will have to manually copy the `config` and `peer` directories from the `Assets` directory to the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html) (In Windows this is: `spirit_unity_Data`).
+However, after building the application, you will have to manually copy the `config` and `peer` directories from the `Assets` directory to the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html) (In Windows this is: `spirit_unity_Data` located in the build directory).
 
 ## Usage
 The arrow keys can be used to move the camera when not using any headset. If you are using a headset, make sure that headset is fully connected to your pc (e.g., for Meta Quest, make sure you are fully linked before starting the application).
@@ -27,6 +27,11 @@ The arrow keys can be used to move the camera when not using any headset. If you
 
 ## Dependencies
 All dependencies will be automatically downloaded when opening the project.
+
+## Supported HMDs
+In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:
+#### Tested
+- Meta Quest 2 ([guide](https://www.meta.com/en-gb/help/quest/articles/headsets-and-accessories/oculus-link/connect-with-air-link/))
 
 ## Supported HMDs
 In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:

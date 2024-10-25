@@ -3,9 +3,9 @@
 In this repository, all files related to a one-to-many volumetric video-based system are made available. Three parts are considered:
 
 - A [capturer](capturer) written in C++, use to capture point clouds and encode them using Draco
-- A [Unity project](unity) written in C#, used to render the point cloud video
-- A [WebRTC framework](webrtc) written in Golang, containing the WebRTC server and client applications
-- A [connector plugin](connector) written in C++, used to interconnect the Unity application to the WebRTC client (currently incomptabile)
+- A [Unity project](unity/spirit_o2m_webrtc) written in C#, used to render the point cloud video
+- A [WebRTC client](webrtc-client) and a [WebRTC server](webrtc-server) written in Golang, containing the WebRTC server and client applications
+- A [connector plugin](connector) written in C++, used to interconnect the Unity application to the WebRTC client
 
 The system is currently under development by IDLab, Ghent University - imec. This README will be updated while development continues, with detailed instructions for each of these components.
 
@@ -33,13 +33,10 @@ The following is required if you are the **receiver**:
 * [Unity application](#unity)
 * [Unity WebRTC connector](#webrtc-connector)
 
+> ❗ It is also best to install the latest version of [vcredist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) to prevent any problems.
 
 ### Capturing
-Capturing is done with a seperate application [custom Dll](point_cloud_capturer/). If you plan to make changes to it, you will have to manually copy it into the `Plugins` directory after building it.
-
-> :exclamation: Unity is unable to unload Dlls once they have been used, so if you plan to update a Dll you will also have to restart the editor.
-
-Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
+Capturing is done with a separate [application](capturer). Currently the application only supports Intel Realsense cameras as a means to capture the point clouds. Make sure your system has the necessary libraries and drivers installed. If this is not the case follow the instructions below:
 
 This project requires several dependencies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg). Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-msbuild?pivots=shell-powershell). You can skip the steps that involve creating a new manifest file, or add new dependencies.
 
@@ -54,7 +51,7 @@ However, for the receiver you will to manually change the current version used b
 
 ### Unity
 First you will have to open the [unity](unity) folder of this repository in Unity hub. Doing so will automatically download any dependencies. Once inside you are able to build the application like any other Unity application, the scene you want to build is called `MainScene` and is located in `Assets/Scenes`.
-
+> :warning: If you get a message asking you to convert to application to a newer Unity version, or to install the older version, always choose to install the older version. The application was not tested with never version of Unity, and problems will likely occur if you upgrade.
 > :exclamation: When building the application, you will have to manually copy the `config` and `peer` directories from the `Assets` directory to the [Unity application datapath](https://docs.unity3d.com/ScriptReference/Application-dataPath.html) (In Windows this is: `spirit_unity_Data`).
 
 ### WebRTC Connector
@@ -82,8 +79,21 @@ The other important parameters are the `selfPort` and `clientPort` these paramet
 ## Supported HMDs
 In general every OpenXR compatible headset will work. However, below is a list of all headsets that have been tested and verified:
 #### Tested
-- Meta Quest 2
+- Meta Quest 2 ([guide](https://www.meta.com/en-gb/help/quest/articles/headsets-and-accessories/oculus-link/connect-with-air-link/))
 
+## Potential Problems
+If you are noticing packet loss (i.e. frames not being delivered), there is a high chance that this is related to your machine not being powerful enough to process the network buffer in time. You can solve this by increasing the default buffer as follows:
+
+### Linux 
+```
+sudo sysctl -w net.core.rmem_max=<new_value>
+sudo sysctl -w net.core.wmem_max=<new_value>
+sudo sysctl -w net.core.rmem_default=<new_value>
+sudo sysctl -w net.core.wmem_default=<new_value>
+```
+With `<new_value>` being a pretty high value such as `52428800`. If you want these changes to be permanent you will also have to add them to `/etc/sysctl.conf`.
+### Windows
+Open the Registry and go to `Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\AFD\Parameters` Once you are here you will need to add `DefaultReceiveWindow` and `DefaultSendWindow` as `DWORD` with a high value (e.g. `2097152` for receive and `64512` for send).
 
 ## Funding
 

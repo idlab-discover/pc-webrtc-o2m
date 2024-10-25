@@ -1,11 +1,19 @@
 # Point Cloud Capturing / Preprocessing
-The repository is the first stage of the real-time point cloud based streaming pipeline ([Complete pipeline](https://github.com/MatthiasDeFre/webrtc-pc-streaming)). It focuses on the capturing, preprocessing and encoding of point clouds and preparing them for low-latency transport between a single server and multiple clients. This application makes use of a UDP socket to transport the encoded point clouds to a seperate application responsible for the transmission between the server and clients. Configuration of the socket IP and port can be found at: [Usage](https://github.com/MatthiasDeFre/pc-capturer ) 
+The repository is the first stage of the real-time point cloud based streaming pipeline ([Complete pipeline](../)). It focuses on the capturing, preprocessing and encoding of point clouds and preparing them for low-latency transport between a single server and multiple clients. This application makes use of a UDP socket to transport the encoded point clouds to a seperate application responsible for the transmission between the server and clients. Configuration of the socket IP and port can be found at the [usage](#usage) section. 
 
 ## Project Structure
 The project is build in a modular way allowing you to provide your own implementations of each pipeline stage. An interface is provided for the capturing, sampling and encoding stages.  For capturing we currently use the Intel Realsense SDK 2.0. However, it is completely viable to implement different point cloud capturing solutions as long as you write your own code which converts the captured point cloud into a PCL compatible format for the other stages of the pipeline.
 
 ## Building
 Currently the project can only be build on Windows by using the supplied [Visual Studio](https://visualstudio.microsoft.com/) solution. When building the project for testing you should make sure that you selected the release candidate, this is due to certain dependencies exhibiting suboptimal behaviour when using the debug build which can hinder the real-tine effeciency of the application. 
+
+Make sure to follow  [the guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-msbuild?pivots=shell-powershell). You can skip the steps that involve creating a new manifest file, or add new dependencies.
+
+> ❗ Make sure to install `vcpkg` in a location that contains no spaces, if you do certain dependencies will break.
+
+> 💡 If you get a build error you probably either skipped the `vcpkg integrate install` step or the step that sets the environment variables. If this happens you will need to `vcpkg integrate remove`, followed by `vcpkg integrate install` and by setting the environment variables.
+
+You can use the shortcut `Ctrl+Shift+B` to easily build the application or follow this [guide](https://learn.microsoft.com/en-us/visualstudio/ide/compiling-and-building-in-visual-studio?view=vs-2022).
 
 ## Dependencies
 This project requires several dependancies for the capturing and preprocessing of the point clouds. You can either build and install these dependencies yourself (and make sure the Visual Studio project is able to find them) or if you have vcpkg all required dependencies will be automatically installed and build (currently this application uses PCL which takes significant time to build with vcpkg).
@@ -26,7 +34,7 @@ This project requires several dependancies for the capturing and preprocessing o
 </ul>
 
 ## Usage
-Following command line parameters can be used to change the behaviour of the application. If you provide a config file the Golang peer will automatical start as well. You can find an example of a config file in the `config_example` directory.
+Following command line parameters can be used to change the behaviour of the application. If you provide a config file the Golang peer will automatical start as well. You can find an example of a config file in the `config_example` directory. This config file contains the parameters used to configure the Golang proxy application, such as the the address, port and path of the WebRTC server.
 
 | **Parameter** 	| **Name**          	| **Description**                                                      	| **Example**     	|
 |---------------	|-------------------	|----------------------------------------------------------------------	|-----------------	|
@@ -35,6 +43,8 @@ Following command line parameters can be used to change the behaviour of the app
 | -i            	| Use Camera        	| Use a Realsense camera as input for the pipeline                     	| n.a.            	|
 | -d            	| Content Directory 	| When not using a camera .ply files in this location are used instead 	| frames          	|
 | -l            	| Encoding strategy 	| Which encoding strategy should be used (e.g., `layer`, `indi`, `fixed_pc`) 	| layer          	|
+
+> ❗ If the application does not run, you might need to install the latest version of [vcredist](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022).
 
 ## Encoding Strategies
 The application contains several encoding strategies (set by using the `-l` parameter`) that you can use to encode the point cloud.
